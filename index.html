@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spinning Layers: Project Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<!--
+==========================  HOW TO EDIT  ==========================
+1. Text: change anything between tags. Each section starts with a comment reading SECTION: name.
+2. Images: put files in assets/img/ and change the src, e.g. src="assets/img/sketch-01.jpg".
+   Missing files show a dashed placeholder with the path you need to fill.
+3. Videos: put files in assets/video/ and edit <source src="...">.
+   For YouTube/Vimeo, replace the <video> tag with their <iframe> embed code.
+4. Add a process step: copy one whole <details class="step"> block and paste it right below.
+5. Colours: edit the variables at the top of the <style> block.
+6. All sample text is placeholder. Replace it with your own.
+====================================================================
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2.3.4/lib/p5.js"></script>
+<script>
+/* Marks any missing image/video so a placeholder shows instead of a broken icon */
+function markMissing(el){const f=el.closest('figure');if(f){f.classList.add('missing');f.dataset.missing='Add file: '+(el.getAttribute('src')||'')}}
+addEventListener('error',e=>{if(['IMG','SOURCE','VIDEO'].includes(e.target.tagName))markMissing(e.target)},true);
+</script>
+
+<style>
+:root{--paper:#F6F7F9;--card:#fff;--ink:#1C2340;--muted:#5B6380;--line:#DDE1EA;
+--l1:#9C040B;--l2:#502C3B;--l3:#6B5917;--r:12px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.75 Literata,Georgia,serif}
+h1,h2,h3,.ui,button,select,summary,nav{font-family:'Bricolage Grotesque',system-ui,sans-serif}
+h1,h2,h3{line-height:1.08;letter-spacing:-.02em;margin:0}
+p{margin:0 0 1em;max-width:68ch}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--l2);outline-offset:3px}
+img,video{max-width:100%;display:block}
+
+nav{position:sticky;top:0;z-index:20;display:flex;gap:.25rem;align-items:center;overflow-x:auto;
+background:rgba(246,247,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:.6rem 1.25rem;scrollbar-width:none}
+nav b{margin-right:1rem;white-space:nowrap;font-weight:800}
+nav a{text-decoration:none;font-size:.9rem;color:var(--muted);padding:.3rem .65rem;border-radius:99px;white-space:nowrap}
+nav a.on{background:var(--ink);color:#fff}
+
+.hero{max-width:1120px;margin:0 auto;padding:3.5rem 1.25rem 2rem;display:grid;grid-template-columns:1.05fr 1fr;gap:3rem;align-items:center}
+.hero h1{font-size:clamp(2.6rem,6.2vw,4.8rem);font-weight:800}
+.hero .sub{font-size:1.2rem;color:var(--muted);margin:1.2rem 0}
+.meta{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;font:600 .9rem 'Bricolage Grotesque',sans-serif;color:var(--muted)}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:1rem}
+#hero-canvas{width:100%;aspect-ratio:1;border-radius:var(--r);border:1px solid var(--line)}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:1rem;font-size:.85rem}
+.ctl label{display:flex;flex-direction:column;gap:.2rem;color:var(--muted);font-weight:600}
+.ctl select,.btn{font:600 .9rem 'Bricolage Grotesque',sans-serif;border:1px solid var(--line);background:#fff;border-radius:8px;padding:.5rem .6rem;color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.row{display:flex;gap:.6rem;grid-column:1/-1}.row .btn{flex:1}
+.ctl .sl{grid-column:1/-1;flex-direction:row;align-items:center;gap:.7rem}
+.ctl .sl i{width:12px;height:12px;border-radius:50%;flex:none}
+.ctl input[type=range]{flex:1;accent-color:var(--ink)}
+.hint{font-size:.8rem;color:var(--muted);margin:.8rem 0 0;max-width:none}
+
+.ctl .chk{flex-direction:row;grid-column:1/-1;align-items:center;gap:.5rem}
+.sketch{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden;margin:1.5rem 0 .8rem}
+.sketch canvas{width:100%!important;height:auto!important}
+.sk-btns{display:flex;flex-wrap:wrap;gap:.5rem}
+main{max-width:820px;margin:0 auto;padding:0 1.25rem 4rem}
+section{padding:4.5rem 0 0}
+h2{font-size:clamp(1.9rem,4vw,2.7rem);font-weight:800;margin-bottom:1rem}
+h2::after{content:"";display:block;width:84px;height:6px;margin-top:.9rem;border-radius:3px;
+background:linear-gradient(90deg,var(--l1) 33%,var(--l2) 33% 66%,var(--l3) 66%)}
+h3{font-size:1.25rem;font-weight:600;margin:1.6rem 0 .5rem}
+.lead{font-size:1.15rem}
+
+figure{margin:1.5rem 0;position:relative}
+figure img,figure video{width:100%;border-radius:var(--r);border:1px solid var(--line);background:#fff}
+figure img{cursor:zoom-in}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:.5rem;font-family:'Bricolage Grotesque',sans-serif}
+figure.missing{min-height:200px;border:2px dashed var(--line);border-radius:var(--r);display:grid;place-items:center;background:repeating-linear-gradient(45deg,#fff,#fff 12px,#F0F2F6 12px 24px)}
+figure.missing::before{content:attr(data-missing);font:600 .85rem 'Bricolage Grotesque',sans-serif;color:var(--muted);padding:1rem;text-align:center}
+figure.missing img,figure.missing video{display:none}
+figure.missing figcaption{position:absolute;bottom:.4rem;left:.8rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
+.grid figure{margin:0}.grid figure.missing{min-height:160px}
+
+.tabs{border:1px solid var(--line);border-radius:var(--r);background:var(--card);margin:1.5rem 0;overflow:hidden}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--paper)}
+.tabbar button{flex:1;border:0;background:none;padding:.9rem .5rem;font-weight:600;font-size:.95rem;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+.tabbar button[aria-selected=true]{color:var(--ink);background:#fff;border-color:var(--c)}
+.panel{padding:1.4rem 1.5rem 0.5rem}.panel[hidden]{display:none}
+
+.timeline{border-left:2px solid var(--line);margin:1.5rem 0 0 1rem}
+.step{position:relative;padding:0 0 .4rem 2rem;counter-increment:s}
+.timeline{counter-reset:s}
+.step summary{list-style:none;cursor:pointer;font-weight:600;font-size:1.1rem;padding:.5rem 0;display:flex;gap:.8rem;align-items:baseline}
+.step summary::-webkit-details-marker{display:none}
+.step summary::before{content:counter(s);position:absolute;left:-1rem;top:.45rem;width:2rem;height:2rem;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:.9rem}
+.step[open] summary::before{background:var(--l1)}
+.step summary small{font-weight:400;color:var(--muted);font-size:.85rem}
+.step>div{padding-bottom:1rem}
+
+
+
+ul.learn{padding:0;list-style:none;display:grid;gap:.8rem;margin:1.5rem 0}
+ul.learn li{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.2rem}
+ul.learn li:nth-child(3n+1){border-left:6px solid var(--l1)}ul.learn li:nth-child(3n+2){border-left:6px solid var(--l2)}ul.learn li:nth-child(3n){border-left:6px solid var(--l3)}
+.reflect{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:1.6rem 1.8rem 1rem;margin-top:1.5rem}
+footer{border-top:1px solid var(--line);padding:2rem 1.25rem;text-align:center;color:var(--muted);font-size:.9rem}
+
+#lb{position:fixed;inset:0;background:rgba(246,247,249,.96);display:none;place-items:center;z-index:50;cursor:zoom-out;padding:1.5rem}
+#lb.on{display:grid}#lb img{max-height:90vh;border-radius:var(--r);border:1px solid var(--line)}
+
+@media(max-width:860px){.hero{grid-template-columns:1fr;gap:2rem;padding-top:2rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav aria-label="Sections">
+  <b>Spinning Layers</b>
+  <a href="#ideation">Ideation</a><a href="#framework">Framework</a><a href="#generator">Generator</a><a href="#process">Process</a>
+  <a href="#outcome">Outcome</a>
+  <a href="#learnings">Learnings</a><a href="#reflection">Reflection</a>
+</nav>
+
+<!-- SECTION: hero -->
+<header class="hero">
+  <div>
+    <h1>Spin the Odds!</h1>
+    <p class="sub">Layers of laser-cut MDF that spin and slide apart, turning one light into a shadow projection that is ever-changing.</p>
+    <div class="meta"><span>Amrita Rajaguru</span><span>Year 2 CAC</span><span>October 2026</span></div>
+    <p class="hint">The wall on the right is a simplified live preview. Widen the gap, spin the layers together or one at a time, and watch the shadow change.</p>
+  </div>
+  <div class="stage">
+    <canvas id="hero-canvas" aria-label="Interactive shadow projection of three spinning laser-cut layers"></canvas>
+    <div class="ctl">
+      <label class="sl">Gap<input id="gap" type="range" min="0" max="1" step=".01" value=".5" aria-label="Distance between layers"></label>
+      <label class="sl"><i style="background:var(--l1)"></i>Layer 1<input class="ang" type="range" min="0" max="6.283" step=".01" value="0" aria-label="Layer 1 angle"></label>
+      <label class="sl"><i style="background:var(--l2)"></i>Layer 2<input class="ang" type="range" min="0" max="6.283" step=".01" value="0" aria-label="Layer 2 angle"></label>
+      <label class="sl"><i style="background:var(--l3)"></i>Layer 3<input class="ang" type="range" min="0" max="6.283" step=".01" value="0" aria-label="Layer 3 angle"></label>
+      <label class="chk"><input type="checkbox" id="link"> Move layers together</label>
+      <div class="row"><button class="btn" id="reseed">New discs</button><button class="btn dark" id="spin">Pause spin</button></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- SECTION: ideation -->
+<section id="ideation">
+  <h2>Ideation</h2>
+  <p class="lead">Since we had to work towards creating something physical or tangible, I wanted to exhibit physically what the word "generative" means. </p>
+  <p>While the concept of generative art is often associated with digital outcomes, my approach was to create a physical manifestation that embodies the principles of generative art through mechanical movement and interaction.</p>
+  <p>I aimed to do this using principles of randomness and constraints to create unique and unpredictable patterns with each spin. This was explored through the medium of light and shadow, as this also allows for the creation of dynamic and ever-changing visual experiences that are dependent on scale and can be magnified.</p>
+  
+</section>
+
+<!-- SECTION: framework -->
+<section id="framework">
+  <h2>Conceptual framework</h2>
+  <p>The three ideas holding the project together. Select a tab to read each one.</p>
+  <div class="tabs" data-tabs>
+    <div class="tabbar" role="tablist">
+      <button role="tab" aria-selected="true" style="--c:var(--l1)">Generated patterns</button>
+      <button role="tab" aria-selected="false" style="--c:var(--l2)">Radial symmetry</button>
+      <button role="tab" aria-selected="false" style="--c:var(--l3)">Layers, distance and light</button>
+    </div>
+    <div class="panel" role="tabpanel"><p>Each layer's pattern is generated in p5.js from a random seed, using one of three pattern types. Every pattern is unique and each set is different.</p></div>
+    <div class="panel" role="tabpanel" hidden><p> Every layer is built around a common centre, ensuring that the patterns align and create a cohesive visual effect when spun.</p></div>
+    <div class="panel" role="tabpanel" hidden><p>Light passes through the stacked layers and casts a shadow onto a surface. Moving the layers closer together or further apart changes how their shadows overlap, and rotating them together or one at a time changes which holes line up, so the projection keeps changing.</p></div>
+  </div>
+</section>
+
+<!-- SECTION: generator -->
+<section id="generator">
+  <h2>The Pattern Generator</h2>
+  <p>A p5.js sketch generates the disc patterns, shows the three layers as solid discs with the pattern cut out as holes, and exports an SVG for the laser cutter. It is the same code, running here.</p>
+  <div id="sketch-holder" class="sketch" aria-label="Pattern generator sketch"></div>
+  <div class="sk-btns">
+    <button class="btn dark" onclick="ui(' ')">New set</button>
+    <button class="btn" onclick="ui('s')">Save SVG</button>
+  </div>
+  <p class="hint">Each press of New set rolls three different pattern types in a random order. Space and S also work while your pointer is over the sketch. In the exported file, every red hairline is a cut.</p>
+</section>
+
+<!-- SECTION: process -->
+<section id="process">
+  <h2>Process</h2>
+  <p>Open each step to see what happened.</p>
+  <div class="timeline">
+    <details class="step" open>
+      <summary>Generate the first patterns in p5.js </summary>
+      <div><p>Generating patterns and finding a suitable set that would convey the intended visual effect easily.</p>
+        <figure><img src="assets/img/process-01.jpg" alt="Process step 1"><figcaption>Early sketch output</figcaption></figure></div>
+    </details>
+    <details class="step">
+      <summary>Export the SVG and laser cut the MDF </summary>
+      <div><p>Exporting the generated patterns as an SVG file and laser cutting them from MDF of different thicknesses to change the speed with which they rotate.</p>
+        <figure><img src="assets/img/process-02.jpg" alt="Process step 2"><figcaption>Laser cutting MDF</figcaption></figure></div>
+    </details>
+    <details class="step">
+      <summary>Create Set-Up using Wood </summary>
+      <div><p>Working at the Wood workshop to make wooden dowels and base to hold the discs. </p>
+    </details>
+    <details class="step">
+      <summary>Assemble the layers and test the light </summary>
+      <div><p>Assembling the layers and testing the light to ensure proper functionality.</p>
+        <figure><video controls preload="none"><source src="assets/video/process-04.mp4" type="video/mp4"></video><figcaption>Process video</figcaption></figure></div>
+    </details>
+  </div>
+</section>
+
+<!-- SECTION: outcome -->
+<section id="outcome">
+  <h2>Final outcome</h2>
+  <p>The finished piece, shown spinning and as a shadow projection.</p>
+  <figure>
+    <video controls preload="metadata" poster="assets/img/outcome-poster.jpg"><source src="assets/video/final.mp4" type="video/mp4"></video>
+  </figure>
+  <figure><video controls preload="metadata" poster="assets/img/outcome-poster.jpg"><source src="assets/video/final2.mp4" type="video/mp4"></video></figure>
+  <div class="grid">
+    <figure><img src="assets/img/outcome-01.jpg" alt="Final detail 1"></figure>
+    <figure><img src="assets/img/outcome-02.jpg" alt="Final detail 2"></figure>
+    <figure><img src="assets/img/outcome-03.jpg" alt="Final detail 3"></figure>
+  </div>
+</section>
+
+<!-- SECTION: learnings -->
+<section id="learnings">
+  <h2>Learnings</h2>
+  <ul class="learn">
+    <li><b>Distance changes the image as much as the pattern does.</b>Moving a layer closer to or further from the light changes how big its shadow is, so the gap between layers is a design variable.</li>
+    <li><b>Physical prototypes behave differently from previews.</b> The on-screen preview is only a guide. Material, it's thickness, weight and strength can affect the final result. So it's important to keep this in mind while choosing materials and medium.</li>
+    <li><b>Randomness within constraints.</b> Even a randomly generated pattern only looked good within the constraints of the design and rules about the pattern.</li>
+  </ul>
+</section>
+
+<!-- SECTION: reflection -->
+<section id="reflection">
+  <h2>Reflection</h2>
+  <div class="reflect">
+    <p>Through this assignment, I was even more drawn to create art that carries principles of science and nature that one can interpret in many ways. The final piece is a set of laser-cut MDF layers whose spacing can be changed and which can be turned separately or together, with a light shining through them to cast a projection on a wall or a screen. While this deals a lot with shadow and light, I would also like to interpret it as how scale can be magnified — how even a tiny source of light and a small object can expand vastly and occupy surfaces ; surfaces they weren’t necessarily made for. The shadows bend and take the form of the surface, seemingly versatile yet leaving a mark.</p>
+    <p><b> In my project, rule based generation is executed twice, first by the code and then by the physical artefact. </b></p>
+  </div>
+</section>
+
+</main>
+
+<footer>Spinning Layers. Documentation by Amrita Rajaguru, 2026.</footer>
+<div id="lb" role="dialog" aria-label="Enlarged image"><img alt=""></div>
+
+<script>
+(()=>{
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+$$('img').forEach(i=>i.complete&&!i.naturalWidth&&markMissing(i));
+
+/* ---------- Hero: simplified shadow projection of three laser-cut discs ---------- */
+const S=600,C=S/2,SP=[.5,-.8,1.3],st={a:[0,0,0],spin:!matchMedia('(prefers-reduced-motion: reduce)').matches};
+const cv=$('#hero-canvas'),ctx=cv.getContext('2d'),sliders=$$('.ang'),gap=$('#gap'),link=$('#link');cv.width=cv.height=S;
+let discs=[];
+function disc(){const c=Object.assign(document.createElement('canvas'),{width:S,height:S}),g=c.getContext('2d');
+  g.translate(C,C);g.fillStyle='#000';g.beginPath();g.arc(0,0,C-8,0,7);g.fill();g.globalCompositeOperation='destination-out';
+  let r=40;const w=(C-70)/3-16;
+  for(let z=0;z<3;z++){const n=[6,8,10,12,16,20][Math.random()*6|0],ph=Math.random()*6.28,aw=Math.PI/n*(.3+Math.random()*.7);
+    for(let k=0;k<n;k++){const a=ph+k*2*Math.PI/n;g.beginPath();g.arc(0,0,r+w,a-aw/2,a+aw/2);g.arc(0,0,r,a+aw/2,a-aw/2,true);g.closePath();g.fill()}
+    r+=w+16}
+  g.beginPath();g.arc(0,0,10,0,7);g.fill();return c}
+function reseed(){discs=[0,1,2].map(disc)}
+function render(){const g=ctx.createRadialGradient(C,C,40,C,C,C*1.3);g.addColorStop(0,'#fff');g.addColorStop(1,'#E1E6EF');
+  ctx.fillStyle=g;ctx.fillRect(0,0,S,S);ctx.globalAlpha=.6;
+  discs.forEach((d,i)=>{const k=1-i*gap.value*.12;ctx.save();ctx.translate(C+i*gap.value*14,C);ctx.rotate(st.a[i]);ctx.scale(k,k);ctx.drawImage(d,-C,-C);ctx.restore()});
+  ctx.globalAlpha=1}
+let t0=0;
+function tick(t){const dt=Math.min((t-t0)/1000,.1);t0=t;
+  if(st.spin)st.a=st.a.map((a,i)=>(a+(link.checked?SP[0]:SP[i])*dt+6.283)%6.283);
+  sliders.forEach((s,i)=>s.value=st.a[i]);render();requestAnimationFrame(tick)}
+sliders.forEach((s,i)=>s.oninput=()=>{const d=+s.value-st.a[i];st.a=st.a.map((a,j)=>link.checked?(a+d+6.283)%6.283:j==i?+s.value:a)});
+$('#reseed').onclick=reseed;
+const spinBtn=$('#spin');
+function setSpin(v){st.spin=v;spinBtn.textContent=v?'Pause spin':'Start spin'}
+spinBtn.onclick=()=>setSpin(!st.spin);setSpin(st.spin);
+reseed();requestAnimationFrame(tick);
+
+/* ---------- Tabs ---------- */
+$$('[data-tabs]').forEach(t=>{const b=$$('[role=tab]',t),p=$$('[role=tabpanel]',t);
+  b.forEach((x,i)=>x.onclick=()=>{b.forEach((y,j)=>{y.setAttribute('aria-selected',i==j);p[j].hidden=i!=j})})});
+
+/* ---------- Lightbox (click any image to enlarge) ---------- */
+const lb=$('#lb');
+document.addEventListener('click',e=>{const i=e.target;
+  if(i.tagName=='IMG'&&i.closest('figure')&&i.id!='x'&&!lb.contains(i)){$('img',lb).src=i.src;lb.classList.add('on')}
+  else if(lb.contains(i)||i==lb)lb.classList.remove('on')});
+addEventListener('keydown',e=>e.key=='Escape'&&lb.classList.remove('on'));
+
+/* ---------- Active nav link ---------- */
+const links=$$('nav a'),io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)
+  links.forEach(a=>a.classList.toggle('on',a.hash=='#'+e.target.id))}),{rootMargin:'-40% 0px -55% 0px'});
+$$('main section').forEach(s=>io.observe(s));
+})();
+</script>
+<script src="sketch.js"></script>
+</body>
+</html>
